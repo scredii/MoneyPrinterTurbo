@@ -92,8 +92,8 @@ cfg = VideoParams()
 
 with left_panel:
     with st.container(border=True):
-        st.write("**文案设置**")
-        cfg.video_subject = st.text_input("视频主题（给定一个关键词，:red[AI自动生成]视频文案）",
+        st.write("**Copywriting**")
+        cfg.video_subject = st.text_input("Video Topic (given a keyword, :red [AI auto-generated] video copy)",
                                           value=st.session_state['video_subject']).strip()
 
         video_languages = [
@@ -102,7 +102,7 @@ with left_panel:
         for lang in ["zh-CN", "zh-TW", "en-US"]:
             video_languages.append((lang, lang))
 
-        selected_index = st.selectbox("生成视频脚本的语言（:blue[一般情况AI会自动根据你输入的主题语言输出]）",
+        selected_index = st.selectbox("Language for generating video scripts (:blue [normally AI will automatically output based on the theme language you enter])）",
                                       index=0,
                                       options=range(len(video_languages)),  # 使用索引作为内部选项值
                                       format_func=lambda x: video_languages[x][0]  # 显示给用户的是标签
@@ -110,9 +110,9 @@ with left_panel:
         cfg.video_language = video_languages[selected_index][1]
 
         if cfg.video_language:
-            st.write(f"设置AI输出文案语言为: **:red[{cfg.video_language}]**")
+            st.write(f"Set the AI output copy language to: **:red[{cfg.video_language}]**")
 
-        if st.button("点击使用AI根据**主题**生成 【视频文案】 和 【视频关键词】", key="auto_generate_script"):
+        if st.button("Click to use AI to generate [Video Copy] and [Video Keywords] based on **Topic**.", key="auto_generate_script"):
             with st.spinner("AI正在生成视频文案和关键词..."):
                 script = llm.generate_script(video_subject=cfg.video_subject, language=cfg.video_language)
                 terms = llm.generate_terms(cfg.video_subject, script)
@@ -121,33 +121,33 @@ with left_panel:
                 st.session_state['video_terms'] = ", ".join(terms)
 
         cfg.video_script = st.text_area(
-            "视频文案（:blue[①可不填，使用AI生成  ②合理使用标点断句，有助于生成字幕]）",
+            "Video copy (:blue [① may not be filled in, use AI to generate ② reasonable use of punctuation breaks to help generate subtitles])",
             value=st.session_state['video_script'],
             height=230
         )
-        if st.button("点击使用AI根据**文案**生成【视频关键词】", key="auto_generate_terms"):
+        if st.button("Click to use AI to generate [video keywords] based on **Copy**", key="auto_generate_terms"):
             if not cfg.video_script:
                 st.error("请先填写视频文案")
                 st.stop()
 
-            with st.spinner("AI正在生成视频关键词..."):
+            with st.spinner("AI is generating video keywords..."):
                 terms = llm.generate_terms(cfg.video_subject, cfg.video_script)
                 st.toast('AI生成成功')
                 st.session_state['video_terms'] = ", ".join(terms)
 
         cfg.video_terms = st.text_area(
-            "视频关键词（:blue[①可不填，使用AI生成 ②用**英文逗号**分隔，只支持英文]）",
+            "Video keywords (:blue [① may not fill in, use AI to generate ② with ** English comma ** separated, only support English])）",
             value=st.session_state['video_terms'],
             height=50)
 
 with middle_panel:
     with st.container(border=True):
-        st.write("**视频设置**")
+        st.write("**Video Settings**")
         video_concat_modes = [
-            ("顺序拼接", "sequential"),
-            ("随机拼接（推荐）", "random"),
+            ("sequential splicing", "sequential"),
+            ("Random splicing (recommended)", "random"),
         ]
-        selected_index = st.selectbox("视频拼接模式",
+        selected_index = st.selectbox("Video splicing mode",
                                       index=1,
                                       options=range(len(video_concat_modes)),  # 使用索引作为内部选项值
                                       format_func=lambda x: video_concat_modes[x][0]  # 显示给用户的是标签
@@ -155,20 +155,20 @@ with middle_panel:
         cfg.video_concat_mode = VideoConcatMode(video_concat_modes[selected_index][1])
 
         video_aspect_ratios = [
-            ("竖屏 9:16（抖音视频）", VideoAspect.portrait.value),
-            ("横屏 16:9（西瓜视频）", VideoAspect.landscape.value),
+            ("Vertical 9:16 (Shake video)）", VideoAspect.portrait.value),
+            ("Landscape 16:9 (Watermelon Video)", VideoAspect.landscape.value),
             # ("方形 1:1", VideoAspect.square.value)
         ]
-        selected_index = st.selectbox("视频比例",
+        selected_index = st.selectbox("Video Ratio",
                                       options=range(len(video_aspect_ratios)),  # 使用索引作为内部选项值
                                       format_func=lambda x: video_aspect_ratios[x][0]  # 显示给用户的是标签
                                       )
         cfg.video_aspect = VideoAspect(video_aspect_ratios[selected_index][1])
 
-        cfg.video_clip_duration = st.selectbox("视频片段最大时长(秒)", options=[2, 3, 4, 5, 6], index=1)
-        cfg.video_count = st.selectbox("同时生成视频数量", options=[1, 2, 3, 4, 5], index=0)
+        cfg.video_clip_duration = st.selectbox("Maximum duration of video clips (seconds)", options=[2, 3, 4, 5, 6], index=1)
+        cfg.video_count = st.selectbox("Number of simultaneous videos generated", options=[1, 2, 3, 4, 5], index=0)
     with st.container(border=True):
-        st.write("**音频设置**")
+        st.write("**Audio Settings**")
         # 创建一个映射字典，将原始值映射到友好名称
         friendly_names = {
             voice: voice.
@@ -180,16 +180,16 @@ with middle_panel:
             replace("en-US", "英文").
             replace("Neural", "") for
             voice in VoiceNames}
-        selected_friendly_name = st.selectbox("朗读声音", options=list(friendly_names.values()))
+        selected_friendly_name = st.selectbox("Reading voice", options=list(friendly_names.values()))
         voice_name = list(friendly_names.keys())[list(friendly_names.values()).index(selected_friendly_name)]
         cfg.voice_name = voice_name
 
         bgm_options = [
-            ("无背景音乐 No BGM", ""),
-            ("随机背景音乐 Random BGM", "random"),
-            ("自定义背景音乐 Custom BGM", "custom"),
+            ("background music (BGM) No BGM", ""),
+            ("Random background music Random BGM", "random"),
+            ("Customized background music Custom BGM", "custom"),
         ]
-        selected_index = st.selectbox("背景音乐",
+        selected_index = st.selectbox("background music (BGM)",
                                       index=1,
                                       options=range(len(bgm_options)),  # 使用索引作为内部选项值
                                       format_func=lambda x: bgm_options[x][0]  # 显示给用户的是标签
@@ -199,26 +199,26 @@ with middle_panel:
 
         # 根据选择显示或隐藏组件
         if bgm_type == "custom":
-            custom_bgm_file = st.text_input("请输入自定义背景音乐的文件路径：")
+            custom_bgm_file = st.text_input("Please enter the file path of the customized background music：")
             if custom_bgm_file and os.path.exists(custom_bgm_file):
                 cfg.bgm_file = custom_bgm_file
                 # st.write(f":red[已选择自定义背景音乐]：**{custom_bgm_file}**")
-        cfg.bgm_volume = st.selectbox("背景音乐音量（0.2表示20%，背景声音不宜过高）",
+        cfg.bgm_volume = st.selectbox("Background music volume (0.2 means 20%, background sound should not be too high)）",
                                       options=[0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], index=2)
 
 with right_panel:
     with st.container(border=True):
-        st.write("**字幕设置**")
-        cfg.subtitle_enabled = st.checkbox("生成字幕（若取消勾选，下面的设置都将不生效）", value=True)
+        st.write("**Subtitle settings**")
+        cfg.subtitle_enabled = st.checkbox("Generate subtitles (if unchecked, none of the following settings will take effect)", value=True)
         font_names = get_all_fonts()
-        cfg.font_name = st.selectbox("字体", font_names)
+        cfg.font_name = st.selectbox("calligraphic style", font_names)
 
         subtitle_positions = [
             ("顶部（top）", "top"),
             ("居中（center）", "center"),
             ("底部（bottom，推荐）", "bottom"),
         ]
-        selected_index = st.selectbox("字幕位置",
+        selected_index = st.selectbox("Subtitle position",
                                       index=2,
                                       options=range(len(subtitle_positions)),  # 使用索引作为内部选项值
                                       format_func=lambda x: subtitle_positions[x][0]  # 显示给用户的是标签
